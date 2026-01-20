@@ -289,76 +289,107 @@ const VideoCall = ({ roomId }) => {
 
 
     // ----------------------------------------------------------------
-    // 5. RENDER
+    // 6. UI LAYOUT & INTERACTION
     // ----------------------------------------------------------------
+    const [primaryVideo, setPrimaryVideo] = useState('remote');
+
+    const toggleLayout = () => {
+        setPrimaryVideo(prev => prev === 'remote' ? 'local' : 'remote');
+    };
+
+    // Styles for the two states
+    const fullscreenStyles = "absolute inset-0 w-full h-full z-0";
+    const floatingStyles = "absolute bottom-4 right-4 w-32 h-48 bg-black/80 rounded-xl shadow-2xl border-2 border-white/20 z-20 cursor-pointer hover:scale-105 transition-all duration-300 overflow-hidden";
+
+    // When primary is remote: Local is Floating, Remote is Fullscreen
+    // When primary is local: Local is Fullscreen, Remote is Floating
+    const localClasses = primaryVideo === 'remote' ? floatingStyles : fullscreenStyles;
+    const remoteClasses = primaryVideo === 'local' ? floatingStyles : fullscreenStyles;
+
+
     return (
-        <div className="flex flex-col gap-4">
-            <div className={`text-center text-sm font-mono px-4 py-2 rounded ${connectionState === 'connected' ? 'bg-green-500/20 text-green-300' : 'bg-gray-800 text-gray-300'}`}>
-                Status: {status} <span className="text-xs opacity-50">({connectionState})</span>
+        <div className="relative w-full h-full bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-gray-800">
+            {/* STATUS OVERLAY */}
+            <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-30 px-4 py-1 rounded-full text-xs font-mono font-bold backdrop-blur-md transition-colors duration-500 ${connectionState === 'connected'
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    : 'bg-red-500/20 text-red-100 border border-red-500/30 animate-pulse'
+                }`}>
+                {status}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* My Video */}
-                <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="relative bg-black rounded-lg overflow-hidden aspect-video shadow-lg ring-1 ring-gray-700"
+            {/* END CALL BUTTON (Always visible at bottom center) */}
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
+                <button
+                    onClick={() => terminateCall(true)}
+                    className="p-4 bg-red-600 hover:bg-red-500 text-white rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95"
+                    title="End Call"
                 >
-                    <video
-                        ref={localVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        className={`w-full h-full object-cover transform scale-x-[-1] transition-opacity duration-300 ${localStream ? 'opacity-100' : 'opacity-0'}`}
-                    />
-                    {!localStream && (
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-500 animate-pulse">
-                            Initializing Camera...
-                        </div>
-                    )}
-                    <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white z-10">You</div>
-                </motion.div>
-
-                {/* Remote Video */}
-                <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="relative bg-black rounded-lg overflow-hidden aspect-video shadow-lg ring-1 ring-gray-700 border-2 border-transparent"
-                    style={{ borderColor: connectionState === 'connected' ? '#10B981' : 'transparent' }}
-                >
-                    <video
-                        ref={remoteVideoRef}
-                        playsInline
-                        autoPlay
-                        className={`w-full h-full object-cover bg-gray-900 transition-opacity duration-300 ${remoteStream ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
-                    />
-
-                    {!remoteStream && (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2 relative z-10 w-full h-full">
-                            {connectionState === 'connected' ? (
-                                <p className="animate-pulse">Waiting for video...</p>
-                            ) : (
-                                <div className="flex flex-col items-center">
-                                    <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10 mb-2"></div>
-                                    <p>Connecting...</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white z-20">Partner</div>
-                </motion.div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
+                    </svg>
+                </button>
             </div>
 
-            {(connectionState === 'connected' || connectionState === 'checking' || connectionState === 'new' || connectionState === 'failed') && (
-                <div className="flex justify-center">
-                    <button
-                        onClick={() => terminateCall(true)}
-                        className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-full font-bold shadow-md transition-colors"
-                    >
-                        End Call
-                    </button>
-                </div>
-            )}
+
+            {/* LOCAL VIDEO CONTAINER */}
+            <motion.div
+                layout
+                className={localClasses}
+                onClick={() => primaryVideo === 'remote' && toggleLayout()}
+                initial={false}
+                animate={{
+                    borderRadius: primaryVideo === 'remote' ? '12px' : '0px'
+                }}
+            >
+                <video
+                    ref={localVideoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className={`w-full h-full object-cover transform scale-x-[-1] ${localStream ? 'opacity-100' : 'opacity-0'}`}
+                />
+                {!localStream && (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs font-mono animate-pulse bg-gray-900">
+                        Init Camera...
+                    </div>
+                )}
+                {/* Check connection state specifically for "You" label visibility if needed, or always show */}
+                <div className="absolute bottom-1 left-2 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-white/90">You</div>
+            </motion.div>
+
+
+            {/* REMOTE VIDEO CONTAINER */}
+            <motion.div
+                layout
+                className={remoteClasses}
+                onClick={() => primaryVideo === 'local' && toggleLayout()}
+                initial={false}
+                animate={{
+                    borderRadius: primaryVideo === 'local' ? '12px' : '0px'
+                }}
+            >
+                <video
+                    ref={remoteVideoRef}
+                    playsInline
+                    autoPlay
+                    className={`w-full h-full object-cover bg-gray-900 transition-opacity duration-300 ${remoteStream ? 'opacity-100' : 'opacity-0'}`}
+                />
+
+                {!remoteStream && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-gray-400">
+                        {connectionState === 'connected' ? (
+                            <p className="animate-pulse text-sm">Waiting for video...</p>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <span className="text-4xl mb-4 animate-bounce">👤</span>
+                                <p className="text-sm font-medium animate-pulse">Waiting for partner...</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div className="absolute bottom-1 left-2 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-white/90">Partner</div>
+            </motion.div>
+
         </div>
     );
 };
