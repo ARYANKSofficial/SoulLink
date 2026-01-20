@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react'
 import { SocketProvider, useSocket } from './context/SocketContext'
 import Chat from './components/Chat'
 import VideoCall from './components/VideoCall'
-// import './App.css' // Removing old CSS
 
 const RoomManager = () => {
+  // --------------------------------------------------------
+  // 1. ALL HOOKS MUST BE AT THE TOP LEVEL
+  // --------------------------------------------------------
   const socket = useSocket();
+
+  // State Hooks
   const [room, setRoom] = useState('');
   const [joined, setJoined] = useState(false);
-
-  /* Tab State */
   const [activeTab, setActiveTab] = useState('call');
 
+  // handlers
   const joinRoom = (e) => {
     e.preventDefault();
     if (room && socket) {
@@ -20,6 +23,11 @@ const RoomManager = () => {
     }
   };
 
+  // --------------------------------------------------------
+  // 2. CONDITIONAL RENDERING (AFTER HOOKS)
+  // --------------------------------------------------------
+
+  // LOGIN SCREEN
   if (!joined) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
@@ -45,17 +53,14 @@ const RoomManager = () => {
     );
   }
 
-  /* Tab State */
-  const [activeTab, setActiveTab] = useState('call');
-
+  // MAIN APP INTERFACE
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white overflow-hidden">
-      {/* App Header (Minimal) */}
+      {/* App Header */}
       <header className="p-3 bg-gray-800/80 backdrop-blur-md shadow-md flex justify-between items-center z-10 shrink-0">
         <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
           SoulLink <span className="text-gray-500 text-xs font-mono ml-2">#{room}</span>
         </h1>
-        {/* Connection Status Indicator could go here */}
       </header>
 
       {/* Main Content Area - Components stay mounted! */}
