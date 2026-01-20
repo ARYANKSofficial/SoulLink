@@ -9,6 +9,9 @@ const RoomManager = () => {
   const [room, setRoom] = useState('');
   const [joined, setJoined] = useState(false);
 
+  /* Tab State */
+  const [activeTab, setActiveTab] = useState('call');
+
   const joinRoom = (e) => {
     e.preventDefault();
     if (room && socket) {
