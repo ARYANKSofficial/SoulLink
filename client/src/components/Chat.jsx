@@ -74,7 +74,7 @@ const Chat = ({ roomId }) => {
     };
 
     return (
-        <div className="flex flex-col h-[500px] bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl">
+        <div className="flex flex-col h-full bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl">
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-900/50">
                 <AnimatePresence>
                     {messages.map((msg, index) => {
@@ -87,8 +87,8 @@ const Chat = ({ roomId }) => {
                                 className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div className={`max-w-[70%] p-3 rounded-2xl ${isMe
-                                        ? 'bg-purple-600 text-white rounded-br-none'
-                                        : 'bg-gray-700 text-gray-200 rounded-bl-none'
+                                    ? 'bg-purple-600 text-white rounded-br-none'
+                                    : 'bg-gray-700 text-gray-200 rounded-bl-none'
                                     }`}>
                                     {renderMessageContent(msg)}
                                     <span className="text-[10px] opacity-70 block text-right mt-1">{msg.time}</span>
