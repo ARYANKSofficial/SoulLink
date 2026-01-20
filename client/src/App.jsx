@@ -66,10 +66,8 @@ const RoomManager = () => {
       {/* Main Content Area - Components stay mounted! */}
       <main className="flex-1 relative overflow-hidden w-full max-w-md mx-auto md:max-w-4xl">
 
-        {/* CALL TAB CONTAINER */}
-        <div className={`absolute inset-0 flex flex-col p-4 transition-opacity duration-300 ${activeTab === 'call' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
-          <VideoCall roomId={room} />
-        </div>
+        {/* VIDEO CALL COMPONENT (Handles its own layout based on activeTab) */}
+        <VideoCall roomId={room} activeTab={activeTab} />
 
         {/* CHAT TAB CONTAINER */}
         <div className={`absolute inset-0 flex flex-col p-4 transition-opacity duration-300 ${activeTab === 'chat' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
