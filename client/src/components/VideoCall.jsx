@@ -32,22 +32,25 @@ const remoteClasses = primaryVideo === 'local' ? floatingStyles : fullscreenStyl
 return (
     <motion.div
         layout
+        {...(isPiP ? { "data-pip": "true" } : {})}
         drag={isPiP}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }} // Constraints relative to parent, might need to be loose or window
-        dragElastic={0.2}
+        dragElastic={0.05}
         dragMomentum={false}
         initial={false}
         animate={isPiP ? {
             position: 'fixed',
             width: '120px',
             height: '180px',
-            bottom: '80px', // Above bottom nav
+            bottom: '100px', // Adjusted to be clearly above nav
             right: '16px',
             top: 'auto',
             left: 'auto',
             borderRadius: '16px',
-            zIndex: 50,
-            boxShadow: "0px 10px 30px rgba(0,0,0,0.5)"
+            zIndex: 9999,
+            boxShadow: "0px 10px 30px rgba(0,0,0,0.5)",
+            borderWidth: '2px', // Add explicit border width
+            borderColor: 'rgba(255, 255, 255, 0.2)' // Add explicit border color
         } : {
             position: 'absolute',
             width: '100%',
@@ -58,10 +61,12 @@ return (
             right: 0,
             borderRadius: '0px',
             zIndex: 0,
-            boxShadow: "none"
+            boxShadow: "none",
+            borderWidth: '0px',
+            borderColor: 'transparent'
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`bg-black overflow-hidden ${isPiP ? 'cursor-grab active:cursor-grabbing border border-gray-700' : ''}`}
+        className={`bg-black overflow-hidden ${isPiP ? 'cursor-grab active:cursor-grabbing border-gray-700' : ''}`}
     // If strictly p-4 padding in parent was removed, we fill the parent.
     // But we moved this OUT of p-4 container in App.jsx.
     >
