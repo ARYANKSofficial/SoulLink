@@ -102,8 +102,11 @@ const VideoCall = ({ roomId }) => {
 
             // 2. Direct Video Element Binding (Backup to State)
             if (remoteVideoRef.current) {
+                console.log("Directly binding remote stream to video element (ontrack)");
                 remoteVideoRef.current.srcObject = stream;
                 remoteVideoRef.current.play().catch(e => console.error("Remote play error:", e));
+            } else {
+                console.warn("remoteVideoRef.current NOT ready in ontrack");
             }
 
             // 3. Handle unmute events (Common mobile issue)
