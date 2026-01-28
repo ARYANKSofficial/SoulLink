@@ -1,37 +1,65 @@
 # SoulLink 🔗
 
-**SoulLink** is a modern, real-time video calling and chat application designed for seamless connection. It features a responsive, tabbed interface that allows users to switch between video calls and chat without interruption, mimicking the experience of popular mobile apps.
+SoulLink is a one-to-one, real-time video calling and chat application designed for private sessions.
+It focuses on simplicity, low latency, and seamless switching between video call and chat, inspired by modern mobile communication apps.
 
-## ✨ Features
+## FEATURES
 
--   **High-Quality Video Calling**: Peer-to-peer video calls using native WebRTC.
--   **Real-Time Chat**: Instant messaging with socket.io.
--   **Tabbed Interface**: Switch between "Call" and "Chat" tabs without unmounting components or dropping the call.
--   **Picture-in-Picture (PiP)**: Keep an eye on your partner in a floating, draggable video window while chatting.
--   **Floating/Fullscreen Layout**: Intelligent video layout management (FaceTime-style) with swap capabilities.
--   **Mobile-First Design**: Fully responsive UI built with Tailwind CSS, optimized for mobile devices.
--   **File Sharing**: Upload and share files directly within the chat.
--   **Secure**: HTTPS enabled for local testing and deployment.
+### One-to-One Video Calling
+- Peer-to-peer video calling using native WebRTC
+- Designed strictly for single user to single user sessions
+- No group calls
 
-## 🛠️ Tech Stack
+### Real-Time Chat
+- Instant messaging during the call using Socket.io
+- Chat and call run in parallel without reconnecting
 
-**Frontend:**
--   **React**: UI Library (Vite)
--   **Tailwind CSS**: Styling
--   **Framer Motion**: Animations & Gestures (Draggable PiP)
--   **Socket.io-client**: Real-time signaling
--   **WebRTC**: Native browser API for peer-to-peer media
+### Tabbed Interface (Call ↔ Chat)
+- Users can switch between Call and Chat tabs
+- Video call continues without disconnecting
+- Components remain mounted to preserve session state
 
-**Backend:**
--   **Node.js & Express**: Server runtime
--   **Socket.io**: WebSocket server for signaling and chat
--   **Multer/Terabox**: File upload handling
+### Picture-in-Picture Style Minimized Video
+- When switching to the chat tab, the video minimizes to a small window
+- Positioned at the bottom-right corner
+- Acts as a persistent preview, not a draggable PiP
+- The minimized video window is not draggable
 
-## 🚀 Getting Started
+### File Sharing (During Call Only)
+- Files can be shared during an active call session
+- Shared files are downloadable instantly
+- No long-term file storage or cloud persistence
+- Files are available only at the time of sharing
+
+### Mobile-First UI
+- Fully responsive interface
+- Built with Tailwind CSS
+- Optimized for mobile and small screens
+
+### Secure Communication
+- HTTPS enabled for deployment
+- WebRTC media streams are peer-to-peer
+
+## TECH STACK
+
+**Frontend**
+- React (Vite)
+- Tailwind CSS
+- Framer Motion
+- Socket.io-client
+- WebRTC
+
+**Backend**
+- Node.js
+- Express
+- Socket.io
+- Multer (temporary file handling)
+
+## GETTING STARTED
 
 ### Prerequisites
--   Node.js (v16 or higher)
--   npm or yarn
+- Node.js v16 or higher
+- npm or yarn
 
 ### Installation
 
@@ -41,34 +69,29 @@
     cd SoulLink
     ```
 
-2.  **Setup Backend**
+2.  **Backend Setup**
     ```bash
     cd server
     npm install
-    # Create a .env file based on your requirements (PORT, CLIENT_URL, etc.)
+    # Create a .env file (PORT, CLIENT_URL, etc.)
     npm start
     ```
 
-3.  **Setup Frontend**
+3.  **Frontend Setup**
     ```bash
     cd client
     npm install
-    # Create a .env file with VITE_SERVER_URL and TURN credentials if needed
+    # Create a .env file with VITE_SERVER_URL
     npm run dev
     ```
 
-4.  **Access the App**
-    Open your browser and navigate to `http://localhost:5173` (or the URL provided by Vite).
+## DEPLOYMENT
+- Frontend deployed on Vercel
+- Backend deployed on Render
+- Automatic redeployments on GitHub push
 
-## 🌍 Deployment
-
--   **Frontend**: Deployed on Vercel.
--   **Backend**: Deployed on Render.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## 📄 License
-
-This project is open-source and available under the [MIT License](LICENSE).
+## CURRENT LIMITATIONS
+- One-to-one calling only
+- No persistent file storage
+- No authentication system
+- Minimized video window is not draggable
