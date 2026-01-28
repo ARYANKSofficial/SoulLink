@@ -1,41 +1,74 @@
 # Deploying SoulLink
 
-This guide allows you to deploy SoulLink to a live environment using Vercel (Frontend) and Render (Backend).
+This guide explains how to deploy SoulLink to a live environment using
+Vercel for the frontend and Render for the backend.
+
+---
 
 ## 1. Backend Deployment (Render)
 
-1.  Create a new **Web Service** on [Render](https://render.com/).
-2.  Connect your GitHub repository.
-3.  Use the following settings:
-    *   **Root Directory:** `server`
-    *   **Build Command:** `npm install`
-    *   **Start Command:** `node index.js`
-4.  **Environment Variables**:
-    *   `PORT`: `10000` (or whatever Render assigns)
-    *   `CLIENT_URL`: `https://your-frontend-project.vercel.app` (Add this AFTER deploying frontend)
-    *   `TERABOX_NDUS`, `TERABOX_APP_ID`, etc. (Add your Terabox credentials)
+1. Create a new **Web Service** on [Render](https://render.com/)
+2. Connect your GitHub repository
+
+### Settings
+- **Root Directory:** `server`
+- **Build Command:** `npm install`
+- **Start Command:** `node index.js`
+
+### Environment Variables
+```env
+PORT=10000
+CLIENT_URL=https://your-frontend-project.vercel.app
+```
+*Render will automatically assign a public backend URL after deployment.*
 
 ## 2. Frontend Deployment (Vercel)
 
-1.  Create a new Project on [Vercel](https://vercel.com/).
-2.  Connect your GitHub repository.
-3.  Use the following settings:
-    *   **Root Directory:** `client`
-    *   **Build Command:** `npm run build`
-    *   **Output Directory:** `dist`
-4.  **Environment Variables**:
-    *   `VITE_SERVER_URL`: `https://your-backend-project.onrender.com` (Get this URL from Render)
-    *   `VITE_TURN_USERNAME`: `...` (Get from [Metered.ca](https://www.metered.ca))
-    *   `VITE_TURN_CREDENTIAL`: `...` (Get from [Metered.ca](https://www.metered.ca))
+1. Create a new Project on [Vercel](https://vercel.com/)
+2. Connect your GitHub repository
 
-## 3. Final Integration
+### Settings
+- **Root Directory:** `client`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
 
-1.  Once Backend is live, copy its URL (e.g., `https://soullink-api.onrender.com`).
-2.  Go to Vercel -> Project Settings -> Environment Variables.
-3.  Add/Update `VITE_SERVER_URL` with the backend URL.
-4.  **Redeploy** the Frontend.
-5.  Copy the Frontend URL (e.g., `https://soullink.vercel.app`).
-6.  Go to Render -> Environment Variables.
-7.  Update `CLIENT_URL` with the frontend URL.
+### Environment Variables
+```env
+VITE_SERVER_URL=https://your-backend-project.onrender.com
+VITE_TURN_USERNAME=your_metered_username
+VITE_TURN_CREDENTIAL=your_metered_credential
+```
 
-Done! Your app is now live.
+## 3. TURN Server Configuration (Metered)
+
+SoulLink uses Metered TURN/STUN servers to ensure WebRTC connectivity across:
+- Mobile networks
+- NAT-restricted connections
+- Firewalled environments
+
+### Steps
+1. Sign up at [https://metered.ca](https://metered.ca)
+2. Create a TURN server
+3. Copy the credentials into Vercel environment variables
+
+## 4. Optional File Persistence (Advanced)
+
+The backend runs on Render, which uses an ephemeral filesystem.
+This means uploaded files are temporary by default.
+
+An optional cloud backup mechanism exists:
+- If cloud storage credentials are provided, shared files are backed up
+- If not provided, files remain temporary and may expire automatically
+
+*A Terabox-based implementation is currently used internally for this purpose.
+This logic is integrated inside the backend and is environment-driven.*
+
+## 5. Final Integration
+
+1. Deploy the backend on Render
+2. Copy the backend URL and set it as `VITE_SERVER_URL` in Vercel
+3. Deploy the frontend on Vercel
+4. Copy the frontend URL and set it as `CLIENT_URL` in Render
+5. Redeploy both services if required
+
+**Your application is now live.**

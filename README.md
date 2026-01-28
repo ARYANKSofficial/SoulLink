@@ -3,12 +3,14 @@
 SoulLink is a one-to-one, real-time video calling and chat application designed for private sessions.
 It focuses on simplicity, low latency, and seamless switching between video call and chat, inspired by modern mobile communication apps.
 
+---
+
 ## FEATURES
 
 ### One-to-One Video Calling
 - Peer-to-peer video calling using native WebRTC
 - Designed strictly for single user to single user sessions
-- No group calls
+- No group calls supported
 
 ### Real-Time Chat
 - Instant messaging during the call using Socket.io
@@ -28,8 +30,8 @@ It focuses on simplicity, low latency, and seamless switching between video call
 ### File Sharing (During Call Only)
 - Files can be shared during an active call session
 - Shared files are downloadable instantly
-- No long-term file storage or cloud persistence
-- Files are available only at the time of sharing
+- No long-term or guaranteed persistent file storage
+- Files are available only during the call or session window
 
 ### Mobile-First UI
 - Fully responsive interface
@@ -40,20 +42,27 @@ It focuses on simplicity, low latency, and seamless switching between video call
 - HTTPS enabled for deployment
 - WebRTC media streams are peer-to-peer
 
+---
+
 ## TECH STACK
 
-**Frontend**
+### Frontend
 - React (Vite)
 - Tailwind CSS
 - Framer Motion
 - Socket.io-client
 - WebRTC
 
-**Backend**
+### Backend
 - Node.js
 - Express
 - Socket.io
 - Multer (temporary file handling)
+
+### WebRTC Infrastructure
+- Metered TURN/STUN servers for reliable connectivity across different networks
+
+---
 
 ## GETTING STARTED
 
@@ -63,45 +72,52 @@ It focuses on simplicity, low latency, and seamless switching between video call
 
 ### Installation
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/ARYANKSofficial/SoulLink.git
-    cd SoulLink
-    ```
+Clone the repository:
 
-2.  **Backend Setup**
-    ```bash
-    cd server
-    npm install
-    # Create a .env file (PORT, CLIENT_URL, etc.)
-    npm start
-    ```
+```bash
+git clone https://github.com/ARYANKSofficial/SoulLink.git
+cd SoulLink
+```
 
-3.  **Frontend Setup**
-    ```bash
-    cd client
-    npm install
-    # Create a .env file with VITE_SERVER_URL
-    npm run dev
-    ```
+**Backend Setup**
+```bash
+cd server
+npm install
+# Create a .env file (PORT, CLIENT_URL, etc.)
+npm start
+```
 
-3.  **TURN Server Setup (Recommended)**
-    For video calls to work across different networks (e.g., WiFi to 4G), you need a TURN server.
-    *   Sign up for a free account at [Metered.ca](https://www.metered.ca/turn-server).
-    *   Get your `TURNS_USERNAME` and `TURNS_CREDENTIAL`.
-    *   Add them to `client/.env`:
-      ```env
-      VITE_TURN_USERNAME=your_username
-      VITE_TURN_CREDENTIAL=your_credential
-      ```
+**Frontend Setup**
+```bash
+cd client
+npm install
+# Create a .env file with VITE_SERVER_URL and TURN credentials if required
+npm run dev
+```
+
+### TURN SERVER SETUP (Recommended)
+
+For video calls to work reliably across different networks (e.g., WiFi ↔ mobile data),
+a TURN server is recommended.
+
+1. Sign up at [https://metered.ca](https://metered.ca)
+2. Obtain TURN credentials
+3. Add them to `client/.env`:
+
+```env
+VITE_TURN_USERNAME=your_username
+VITE_TURN_CREDENTIAL=your_credential
+```
 
 ## DEPLOYMENT
+
 - Frontend deployed on Vercel
 - Backend deployed on Render
 - Automatic redeployments on GitHub push
 
 ## CURRENT LIMITATIONS
+
 - One-to-one calling only
-- No persistent file storage
+- No guaranteed persistent file storage
 - No authentication system
 - Minimized video window is not draggable
