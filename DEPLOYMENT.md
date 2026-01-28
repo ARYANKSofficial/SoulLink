@@ -25,8 +25,8 @@ This guide allows you to deploy SoulLink to a live environment using Vercel (Fro
     *   **Output Directory:** `dist`
 4.  **Environment Variables**:
     *   `VITE_SERVER_URL`: `https://your-backend-project.onrender.com` (Get this URL from Render)
-    *   `VITE_TURN_USERNAME`: `...`
-    *   `VITE_TURN_CREDENTIAL`: `...`
+    *   `VITE_TURN_USERNAME`: `...` (Get from [Metered.ca](https://www.metered.ca))
+    *   `VITE_TURN_CREDENTIAL`: `...` (Get from [Metered.ca](https://www.metered.ca))
 
 ## 3. Final Integration
 

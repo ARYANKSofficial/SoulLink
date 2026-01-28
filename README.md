@@ -85,6 +85,16 @@ It focuses on simplicity, low latency, and seamless switching between video call
     npm run dev
     ```
 
+3.  **TURN Server Setup (Recommended)**
+    For video calls to work across different networks (e.g., WiFi to 4G), you need a TURN server.
+    *   Sign up for a free account at [Metered.ca](https://www.metered.ca/turn-server).
+    *   Get your `TURNS_USERNAME` and `TURNS_CREDENTIAL`.
+    *   Add them to `client/.env`:
+      ```env
+      VITE_TURN_USERNAME=your_username
+      VITE_TURN_CREDENTIAL=your_credential
+      ```
+
 ## DEPLOYMENT
 - Frontend deployed on Vercel
 - Backend deployed on Render
