@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 
 const VideoCall = ({ roomId, activeTab }) => {
     const socket = useSocket();
@@ -8,6 +8,9 @@ const VideoCall = ({ roomId, activeTab }) => {
     const [remoteStream, setRemoteStream] = useState(null);
     const [status, setStatus] = useState('Initializing...');
     const [connectionState, setConnectionState] = useState('new');
+    const [iceType, setIceType] = useState('unknown');
+    const [isMicOn, setIsMicOn] = useState(true);
+    const [isCamOn, setIsCamOn] = useState(true);
 
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
@@ -18,11 +21,17 @@ const VideoCall = ({ roomId, activeTab }) => {
     const candidatesQueue = useRef([]);
     const isRemoteDescriptionSet = useRef(false);
     const remoteSocketId = useRef(null);
+    const iceCheckInterval = useRef(null);
 
     // ----------------------------------------------------------------
     // 6. UI LAYOUT STATE
     // ----------------------------------------------------------------
     const [primaryVideo, setPrimaryVideo] = useState('remote');
+    const pipX = useMotionValue(0);
+    const pipY = useMotionValue(0);
+    const lastPipPos = useRef({ x: 0, y: 0 });
+    const pipRef = useRef(null);
+    const [pipBounds, setPipBounds] = useState({ top: 0, left: 0, right: 0, bottom: 0 });
 
     // Reset primary video to remote if switching tabs (optional, but good for PiP consistency)
     useEffect(() => {
@@ -36,19 +45,23 @@ const VideoCall = ({ roomId, activeTab }) => {
         setPrimaryVideo(prev => prev === 'remote' ? 'local' : 'remote');
     };
 
+    const toggleMic = () => setIsMicOn(prev => !prev);
+    const toggleCam = () => setIsCamOn(prev => !prev);
+
+    const isPiP = activeTab === 'chat';
+
+    const turnUrls = (import.meta.env.VITE_TURN_URLS || '')
+        .split(',')
+        .map((u) => u.trim())
+        .filter(Boolean);
+
     const rtcConfig = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:global.stun.twilio.com:3478' },
-            // Metered TURN
+            // ExpressTURN
             {
-                urls: [
-                    'stun:stun.relay.metered.ca:80',
-                    'turn:global.relay.metered.ca:80',
-                    'turn:global.relay.metered.ca:80?transport=tcp',
-                    'turn:global.relay.metered.ca:443',
-                    'turns:global.relay.metered.ca:443?transport=tcp'
-                ],
+                urls: turnUrls,
                 username: import.meta.env.VITE_TURN_USERNAME,
                 credential: import.meta.env.VITE_TURN_CREDENTIAL
             }
@@ -94,6 +107,8 @@ const VideoCall = ({ roomId, activeTab }) => {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 localStreamRef.current = stream;
                 setLocalStream(stream);
+                setIsMicOn(true);
+                setIsCamOn(true);
 
                 // Bind to local video immediately
                 if (localVideoRef.current) {
@@ -120,6 +135,17 @@ const VideoCall = ({ roomId, activeTab }) => {
         };
     }, []);
 
+    useEffect(() => {
+        const stream = localStreamRef.current;
+        if (!stream) return;
+        stream.getAudioTracks().forEach(track => { track.enabled = isMicOn; });
+    }, [isMicOn]);
+
+    useEffect(() => {
+        const stream = localStreamRef.current;
+        if (!stream) return;
+        stream.getVideoTracks().forEach(track => { track.enabled = isCamOn; });
+    }, [isCamOn]);
     // ----------------------------------------------------------------
     // 3. PEER CONNECTION & SIGNALING
     // ----------------------------------------------------------------
@@ -305,12 +331,48 @@ const VideoCall = ({ roomId, activeTab }) => {
     }, [remoteStream]);
 
 
+    useEffect(() => {
+        if (isPiP) {
+            pipX.set(lastPipPos.current.x);
+            pipY.set(lastPipPos.current.y);
+        } else {
+            lastPipPos.current = { x: pipX.get(), y: pipY.get() };
+            pipX.set(0);
+            pipY.set(0);
+        }
+    }, [isPiP, pipX, pipY]);
+
+    useEffect(() => {
+        if (remoteStream && remoteVideoRef.current) {
+            remoteVideoRef.current.play().catch(() => {});
+        }
+        if (localStream && localVideoRef.current) {
+            localVideoRef.current.play().catch(() => {});
+        }
+    }, [activeTab, localStream, remoteStream]);
+    useEffect(() => {
+        if (!isPiP) return;
+
+        const updateBounds = () => {
+            if (!pipRef.current) return;
+            const rect = pipRef.current.getBoundingClientRect();
+            setPipBounds({
+                left: -rect.left,
+                top: -rect.top,
+                right: window.innerWidth - rect.right,
+                bottom: window.innerHeight - rect.bottom
+            });
+        };
+
+        updateBounds();
+        window.addEventListener('resize', updateBounds);
+        return () => window.removeEventListener('resize', updateBounds);
+    }, [isPiP]);
     // ----------------------------------------------------------------
     // 5. RENDER
     // ----------------------------------------------------------------
 
     // PIP vs FULLSCREEN Logic
-    const isPiP = activeTab === 'chat';
 
     // Styles for the two states (Internal to the container)
     const fullscreenStyles = "absolute inset-0 w-full h-full z-0";
@@ -321,12 +383,16 @@ const VideoCall = ({ roomId, activeTab }) => {
 
     return (
         <motion.div
+            ref={pipRef}
             layout
             {...(isPiP ? { "data-pip": "true" } : {})}
             drag={isPiP}
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            dragConstraints={isPiP ? pipBounds : undefined}
             dragElastic={0.05}
             dragMomentum={false}
+            onDragEnd={() => {
+                lastPipPos.current = { x: pipX.get(), y: pipY.get() };
+            }}
             initial={false}
             animate={isPiP ? {
                 position: 'fixed',
@@ -356,6 +422,7 @@ const VideoCall = ({ roomId, activeTab }) => {
                 borderColor: 'transparent'
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            style={{ x: pipX, y: pipY }}
             className={`bg-black overflow-hidden ${isPiP ? 'cursor-grab active:cursor-grabbing border-gray-700' : ''}`}
         >
             {/* STATUS OVERLAY - Hide in PiP */}
@@ -364,13 +431,57 @@ const VideoCall = ({ roomId, activeTab }) => {
                         ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                         : 'bg-red-500/20 text-red-100 border border-red-500/30 animate-pulse'
                     }`}>
-                    {status}
+                    {status} {iceType !== 'unknown' ? 'ICE: ' + iceType : ''}
                 </div>
             )}
 
             {/* END CALL BUTTON - Hide in PiP */}
             {!isPiP && (
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-3">
+                    <button
+                        onClick={toggleMic}
+                        className={`p-3 rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95 ${isMicOn ? 'bg-gray-800 text-white' : 'bg-yellow-500 text-black'}`}
+                        title={isMicOn ? 'Mute Mic' : 'Unmute Mic'}
+                        aria-label={isMicOn ? 'Mute Mic' : 'Unmute Mic'}
+                    >
+                        {isMicOn ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                                <path d="M19 10a7 7 0 0 1-14 0" />
+                                <path d="M12 17v4" />
+                                <path d="M8 21h8" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 4l16 16" />
+                                <path d="M9 9v1a3 3 0 0 0 5.12 2.12" />
+                                <path d="M15 10V4a3 3 0 0 0-5.12-2.12" />
+                                <path d="M19 10a7 7 0 0 1-4 6.32" />
+                                <path d="M5 10a7 7 0 0 0 3 5.74" />
+                                <path d="M12 17v4" />
+                                <path d="M8 21h8" />
+                            </svg>
+                        )}
+                    </button>
+                    <button
+                        onClick={toggleCam}
+                        className={`p-3 rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95 ${isCamOn ? 'bg-gray-800 text-white' : 'bg-yellow-500 text-black'}`}
+                        title={isCamOn ? 'Turn Camera Off' : 'Turn Camera On'}
+                        aria-label={isCamOn ? 'Turn Camera Off' : 'Turn Camera On'}
+                    >
+                        {isCamOn ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="7" width="14" height="10" rx="2" />
+                                <path d="M16 10l4-3v10l-4-3z" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 4l16 16" />
+                                <rect x="2" y="7" width="14" height="10" rx="2" />
+                                <path d="M16 10l4-3v10l-4-3z" />
+                            </svg>
+                        )}
+                    </button>
                     <button
                         onClick={() => terminateCall(true)}
                         className="p-4 bg-red-600 hover:bg-red-500 text-white rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95"
@@ -388,7 +499,8 @@ const VideoCall = ({ roomId, activeTab }) => {
                 layout
                 className={localClasses}
                 style={{
-                    display: isPiP ? 'none' : 'block' // Hide explicitly in PiP
+                    opacity: isPiP ? 0 : 1,
+                    pointerEvents: isPiP ? 'none' : 'auto'
                 }}
                 onClick={() => primaryVideo === 'remote' && toggleLayout()}
                 initial={false}
@@ -452,3 +564,30 @@ const VideoCall = ({ roomId, activeTab }) => {
 };
 
 export default VideoCall;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
