@@ -316,6 +316,15 @@ const VideoCall = ({ roomId, activeTab }) => {
             terminateCall(false);
         };
 
+                const handleMediaStatus = (data) => {
+            if (!data || data.sender === socket.id) return;
+            setRemoteMediaStatus({
+                mic: !!data.mic,
+                cam: !!data.cam,
+                denied: !!data.denied
+            });
+        };
+
         socket.on('user_joined', handleUserJoined);
         socket.on('offer', handleOffer);
         socket.on('answer', handleAnswer);
@@ -579,6 +588,11 @@ const VideoCall = ({ roomId, activeTab }) => {
 };
 
 export default VideoCall;
+
+
+
+
+
 
 
 
