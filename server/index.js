@@ -122,7 +122,7 @@ io.on('connection', (socket) => {
         io.to(data.to).emit('ice-candidate', data);
     });
 
-    socket.on('send_message', (data) => {
+    socket.on('media_status', (data) => {\r\n        if (data && data.roomId) {\r\n            io.to(data.roomId).emit('media_status', data);\r\n        }\r\n    });\r\n\r\n    socket.on('send_message', (data) => {
         // data: { roomId, text, ... }
         if (data.roomId) {
             io.to(data.roomId).emit('receive_message', data);
@@ -138,3 +138,5 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
+
+

@@ -12,6 +12,7 @@ const VideoCall = ({ roomId, activeTab }) => {
     const [isMicOn, setIsMicOn] = useState(true);
     const [isCamOn, setIsCamOn] = useState(true);
     const [mediaDenied, setMediaDenied] = useState(false);
+    const [remoteMediaStatus, setRemoteMediaStatus] = useState(null);
 
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
@@ -148,6 +149,16 @@ const VideoCall = ({ roomId, activeTab }) => {
         if (!stream) return;
         stream.getVideoTracks().forEach(track => { track.enabled = isCamOn; });
     }, [isCamOn]);
+    useEffect(() => {
+        if (!socket || !roomId) return;
+        socket.emit('media_status', {
+            roomId,
+            mic: isMicOn,
+            cam: isCamOn,
+            denied: mediaDenied,
+            sender: socket.id
+        });
+    }, [socket, roomId, isMicOn, isCamOn, mediaDenied]);
     // ----------------------------------------------------------------
     // 3. PEER CONNECTION & SIGNALING
     // ----------------------------------------------------------------
@@ -310,6 +321,7 @@ const VideoCall = ({ roomId, activeTab }) => {
         socket.on('answer', handleAnswer);
         socket.on('ice-candidate', handleIceCandidate);
         socket.on('end-call', handleEndCall);
+        socket.on('media_status', handleMediaStatus);
 
         return () => {
             socket.off('user_joined', handleUserJoined);
@@ -317,6 +329,7 @@ const VideoCall = ({ roomId, activeTab }) => {
             socket.off('answer', handleAnswer);
             socket.off('ice-candidate', handleIceCandidate);
             socket.off('end-call', handleEndCall);
+            socket.off('media_status', handleMediaStatus);
         };
     }, [socket, roomId]);
 
@@ -566,6 +579,8 @@ const VideoCall = ({ roomId, activeTab }) => {
 };
 
 export default VideoCall;
+
+
 
 
 
