@@ -11,6 +11,7 @@ const VideoCall = ({ roomId, activeTab }) => {
     const [iceType, setIceType] = useState('unknown');
     const [isMicOn, setIsMicOn] = useState(true);
     const [isCamOn, setIsCamOn] = useState(true);
+    const [mediaDenied, setMediaDenied] = useState(false);
 
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
@@ -565,6 +566,7 @@ const VideoCall = ({ roomId, activeTab }) => {
 };
 
 export default VideoCall;
+
 
 
 
