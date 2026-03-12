@@ -56,6 +56,7 @@ const VideoCall = ({ roomId, activeTab }) => {
         .filter(Boolean);
 
     const rtcConfig = {
+        iceTransportPolicy: 'relay',
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:global.stun.twilio.com:3478' },
@@ -564,6 +565,7 @@ const VideoCall = ({ roomId, activeTab }) => {
 };
 
 export default VideoCall;
+
 
 
 
