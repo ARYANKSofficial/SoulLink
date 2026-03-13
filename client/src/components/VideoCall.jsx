@@ -16,6 +16,8 @@ const VideoCall = ({ roomId, activeTab }) => {
 
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
+    const lastRemoteStreamId = useRef(null);
+    const lastLocalStreamId = useRef(null);
 
     // WebRTC References
     const peerConnection = useRef(null);
@@ -57,6 +59,16 @@ const VideoCall = ({ roomId, activeTab }) => {
         .map((u) => u.trim())
         .filter(Boolean);
 
+    const safePlay = async (videoEl) => {
+        if (!videoEl) return;
+        try {
+            await videoEl.play();
+        } catch (e) {
+            if (e?.name !== 'AbortError') {
+                console.error('Play error:', e);
+            }
+        }
+    };
     const rtcConfig = {
         iceTransportPolicy: 'relay',
         iceServers: [
@@ -118,7 +130,7 @@ const VideoCall = ({ roomId, activeTab }) => {
                     console.log("LOCAL STREAM READY: Binding to video element");
                     localVideoRef.current.srcObject = stream;
                     localVideoRef.current.muted = true;
-                    localVideoRef.current.play().catch(e => console.error("Local play error:", e));
+                safePlay(localVideoRef.current);
                 }
             } catch (err) {
                 console.error("Error accessing local media:", err);
@@ -185,7 +197,7 @@ const VideoCall = ({ roomId, activeTab }) => {
             if (remoteVideoRef.current) {
                 console.log("Directly binding remote stream to video element (ontrack)");
                 remoteVideoRef.current.srcObject = stream;
-                remoteVideoRef.current.play().catch(e => console.error("Remote play error:", e));
+                safePlay(remoteVideoRef.current);
             } else {
                 console.warn("remoteVideoRef.current NOT ready in ontrack");
             }
@@ -193,7 +205,7 @@ const VideoCall = ({ roomId, activeTab }) => {
             const videoTrack = stream.getVideoTracks()[0];
             if (videoTrack) {
                 videoTrack.onunmute = () => {
-                    if (remoteVideoRef.current) remoteVideoRef.current.play();
+                    if (remoteVideoRef.current) safePlay(remoteVideoRef.current);
                 };
             }
         };
@@ -350,7 +362,7 @@ const VideoCall = ({ roomId, activeTab }) => {
         if (remoteStream && remoteVideoRef.current) {
             console.log("Re-binding remote stream to video element");
             remoteVideoRef.current.srcObject = remoteStream;
-            remoteVideoRef.current.play().catch(e => console.error("Play error:", e));
+                safePlay(remoteVideoRef.current);
         }
     }, [remoteStream]);
 
@@ -368,10 +380,10 @@ const VideoCall = ({ roomId, activeTab }) => {
 
     useEffect(() => {
         if (remoteStream && remoteVideoRef.current) {
-            remoteVideoRef.current.play().catch(() => {});
+            safePlay(remoteVideoRef.current);
         }
         if (localStream && localVideoRef.current) {
-            localVideoRef.current.play().catch(() => {});
+            safePlay(localVideoRef.current);
         }
     }, [activeTab, localStream, remoteStream]);
     useEffect(() => {
@@ -588,6 +600,9 @@ const VideoCall = ({ roomId, activeTab }) => {
 };
 
 export default VideoCall;
+
+
+
 
 
 
