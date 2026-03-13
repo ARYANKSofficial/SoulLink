@@ -7,7 +7,7 @@ Vercel for the frontend and Render for the backend.
 
 ## 1. Backend Deployment (Render)
 
-1. Create a new **Web Service** on [Render](https://render.com/)
+1. Create a new **Web Service** on https://render.com
 2. Connect your GitHub repository
 
 ### Settings
@@ -18,13 +18,13 @@ Vercel for the frontend and Render for the backend.
 ### Environment Variables
 ```env
 PORT=10000
-CLIENT_URL=https://your-frontend-project.vercel.app
+CLIENT_URL=https://soul-link-zeta.vercel.app
 ```
 *Render will automatically assign a public backend URL after deployment.*
 
 ## 2. Frontend Deployment (Vercel)
 
-1. Create a new Project on [Vercel](https://vercel.com/)
+1. Create a new Project on https://vercel.com
 2. Connect your GitHub repository
 
 ### Settings
@@ -32,11 +32,12 @@ CLIENT_URL=https://your-frontend-project.vercel.app
 - **Build Command:** `npm run build`
 - **Output Directory:** `dist`
 
-### Environment Variables
+### Environment Variables (Vercel)
 ```env
-VITE_SERVER_URL=https://your-backend-project.onrender.com
+VITE_SERVER_URL=https://soullink-plzt.onrender.com
 VITE_TURN_USERNAME=your_metered_username
 VITE_TURN_CREDENTIAL=your_metered_credential
+VITE_TURN_URLS=stun:stun.relay.metered.ca:80,turn:standard.relay.metered.ca:80,turn:standard.relay.metered.ca:80?transport=tcp,turn:standard.relay.metered.ca:443,turns:standard.relay.metered.ca:443?transport=tcp
 ```
 
 ## 3. TURN Server Configuration (Metered)
@@ -46,10 +47,7 @@ SoulLink uses Metered TURN/STUN servers to ensure WebRTC connectivity across:
 - NAT-restricted connections
 - Firewalled environments
 
-### Steps
-1. Sign up at [https://metered.ca](https://metered.ca)
-2. Create a TURN server
-3. Copy the credentials into Vercel environment variables
+**Important:** In production, TURN credentials must be set in Vercel env vars.
 
 ## 4. Optional File Persistence (Advanced)
 
@@ -72,3 +70,21 @@ This logic is integrated inside the backend and is environment-driven.*
 5. Redeploy both services if required
 
 **Your application is now live.**
+
+---
+
+## Troubleshooting
+
+**Calls stuck on "Initializing"**
+- Verify `VITE_SERVER_URL` is correct in Vercel
+- Ensure Render is awake (free tier cold start can take 30-60s)
+
+**ICE parsing error (Empty uri)**
+- `VITE_TURN_URLS` is missing or has a trailing comma
+
+**Chat works but video does not**
+- TURN credentials missing or invalid in Vercel
+- Test TURN reachability (TCP/443)
+
+**Socket connects to https://stun/socket.io**
+- `VITE_SERVER_URL` is incorrectly set to a TURN URL
